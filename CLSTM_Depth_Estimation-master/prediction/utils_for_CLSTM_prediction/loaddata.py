@@ -62,25 +62,22 @@ class depthDataset(Dataset):
 
         return torch.stack(rgb_tensor, 0).permute(1, 0, 2, 3), \
                torch.stack(depth_tensor, 0).permute(1, 0, 2, 3), \
-               torch.stack(depth_scaled_tensor, 0).permute(1, 0, 2, 3),\
-               test_index
+               torch.stack(depth_scaled_tensor, 0).permute(1, 0, 2, 3), \
+               test_index, rgb_index[-1]
 
     def __len__(self):
         return len(self.data_dict)
 
 
-
 def getTestingData(batch_size=64, dict_dir=None, root_dir=None, num_workers=4):
-
     __imagenet_stats = {'mean': [0.485, 0.456, 0.406],
                         'std': [0.229, 0.224, 0.225]}
-
 
     transformed_testing = depthDataset(dict_dir=dict_dir,
                                        root_dir=root_dir,
                                        transform=Compose([
                                            ReScale(240),
-                                           Crop([8, 8, 312, 236], [152, 114]),
+                                           # Crop([8, 8, 312, 236], [152, 114]),
                                            ToTensor(),
                                            Normalize(__imagenet_stats['mean'],
                                                      __imagenet_stats['std'])

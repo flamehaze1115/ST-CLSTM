@@ -8,7 +8,6 @@ from models_CLTSM import net, modules
 from models_CLTSM.backbone_dict import backbone_dict
 from prediction.utils_for_CLSTM_prediction.functions_for_prediction import *
 
-
 # ***********************************************************************************Training settings
 parser = argparse.ArgumentParser(description='models on depth data')
 parser.add_argument('--data_root_dir', type=str, default='/home/hkzhang/phoenix_fast/Depth_estimation/data/nyu_v2_r')
@@ -43,11 +42,12 @@ if not args.use_gan:
 else:
     trained_model_dir = args.trained_models_dir + '{}_{}_fl{}_gan.pkl'.format(args.backbone, args.refinenet, args.fl)
 
-
 model.load_state_dict(torch.load(trained_model_dir))
 
-test_data_dict_dir = args.data_list_root + '{}/{}_fps{}_fl{}_op{}_{}_test.json'.format(args.dataset, args.dataset, args.fps, args.fl, args.overlap, args.test_loc)
-test_loader = getTestingData(1, test_data_dict_dir, args.data_root_dir, args.num_workers)
+test_data_dict_dir = args.data_list_root + '{}/{}_fps{}_fl{}_op{}_{}_test.json'.format(args.dataset, args.dataset,
+                                                                                       args.fps, args.fl, args.overlap,
+                                                                                       args.test_loc)
+test_loader = getTestingData(8, test_data_dict_dir, args.data_root_dir, args.num_workers)
 
 metrics = metric_list([REL(),
                        RMS(),
@@ -58,4 +58,3 @@ metrics = metric_list([REL(),
                        ])
 
 inference(model, test_loader, device, metrics)
-
