@@ -11,11 +11,11 @@ from prediction.utils_for_CLSTM_prediction.functions_for_prediction import *
 # ***********************************************************************************Training settings
 parser = argparse.ArgumentParser(description='models on depth data')
 parser.add_argument('--data_root_dir', type=str, default='/userhome/35/xxlong/dataset/scannet_test/')
-parser.add_argument('--data_list_root', type=str, default='../data/data_list/')
+parser.add_argument('--data_list_root', type=str, default='./data/data_list/')
 parser.add_argument('--dataset', type=str, default='scannet')
 parser.add_argument('--backbone', type=str, default='resnet18')
 parser.add_argument('--refinenet', type=str, default='R_CLSTM_5')
-parser.add_argument('--use_gan', type=bool, default=True)
+parser.add_argument('--use_gan', type=bool, default=False)
 parser.add_argument('--test_loc', type=str, default='end')
 parser.add_argument('--fps', type=int, default=30)
 parser.add_argument('--fl', type=int, default=5)
@@ -23,7 +23,7 @@ parser.add_argument('--overlap', type=int, default=0)
 parser.add_argument('--use_cuda', type=bool, default=True)
 parser.add_argument('--devices', type=str, default='0')
 parser.add_argument('--num_workers', type=int, default=1)
-parser.add_argument('--trained_models_dir', type=str, default='./trained_models/')
+parser.add_argument('--trained_models_dir', type=str, default='./prediction/trained_models/')
 parser.add_argument('--results_save_dir', type=str, default='./predicton_results/')
 args = parser.parse_args()
 
@@ -38,8 +38,10 @@ elif args.backbone in ['resnet18', 'resnet34']:
 model = DataParallel(model).cuda()
 
 if not args.use_gan:
+    print("not use gan")
     trained_model_dir = args.trained_models_dir + '{}_{}_fl{}.pkl'.format(args.backbone, args.refinenet, args.fl)
 else:
+    print("use gan")
     trained_model_dir = args.trained_models_dir + '{}_{}_fl{}_gan.pkl'.format(args.backbone, args.refinenet, args.fl)
 
 model.load_state_dict(torch.load(trained_model_dir))
@@ -55,4 +57,4 @@ metrics = metric_list([REL(),
                        deta(metric_name='deta3', threshold=math.pow(1.25, 3))
                        ])
 
-inference(model, test_loader, device, metrics)
+inference(model, test_loader, device, metrics, output_dir="/userhome/35/xxlong/mvs-recons/output_CLSTM/withgan/")

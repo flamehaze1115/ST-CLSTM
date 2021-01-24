@@ -7,16 +7,15 @@ import re
 from natsort import natsorted
 
 parser = argparse.ArgumentParser(description='raw_nyu_v2')
-parser.add_argument('--dataset', type=str, default='raw_nyu_v2_250k')
+parser.add_argument('--dataset', type=str, default='scannet')
 parser.add_argument('--test_loc', type=str, default='end')
-parser.add_argument('--frame_interval', type=int, default=1)
+parser.add_argument('--frame_interval', type=int, default=2)
 parser.add_argument('--seq_len', type=int, default=5)
 parser.add_argument('--overlap', type=int, default=0)
-parser.add_argument('--root_dir', type=str, default='./')
+parser.add_argument('--root_dir', type=str, default='/userhome/35/xxlong/dataset/scannet_test/')
 
 args = parser.parse_args()
 
-args.jpg_png_save_dir = args.source_dir + args.dataset
 
 
 def make_if_not_exist(path):
@@ -35,10 +34,12 @@ def video_split(frame_len, frame_train, interval, overlap):
     return indices
 
 
-def create_dict(dataset, root_dir, frame_interval, seq_len, start, end):
+def create_dict(dataset, root_dir, frame_interval, seq_len, start=0, end=10):
     scenes = natsorted([x for x in os.listdir(root_dir) if "scene" in x])
+    test_dict = []
     for scene in scenes[start:end]:
         scene_dir = os.path.join(root_dir, scene)
+        print(scene_dir)
         rgb_list = glob(scene_dir + '/rgb/*.jpg')
         depth_list = glob(scene_dir + '/depth/*.png')
         rgb_list = natsorted(rgb_list)
@@ -46,7 +47,6 @@ def create_dict(dataset, root_dir, frame_interval, seq_len, start, end):
 
         assert len(rgb_list) == len(depth_list)
 
-        test_dict = []
         for index, (rgb_file, depth_file) in enumerate(zip(rgb_list, depth_list)):
             rgb_index = int(re.findall(r'\d+', os.path.basename(rgb_file))[0])
             depth_index = int(re.findall(r'\d+', os.path.basename(depth_file))[0])
@@ -62,10 +62,10 @@ def create_dict(dataset, root_dir, frame_interval, seq_len, start, end):
                 }
                 test_dict.append(test_info)
 
-        test_info_save = './{}_frameinterval{}_seqlen{}_test.json'.format(dataset, frame_interval, seq_len)
+    test_info_save = './{}_frameinterval{}_seqlen{}_test_start{}_end{}.json'.format(dataset, frame_interval, seq_len, start, end)
 
-        with open(test_info_save, 'w') as dst_file:
-            json.dump(test_dict, dst_file)
+    with open(test_info_save, 'w') as dst_file:
+        json.dump(test_dict, dst_file)
 
 
 if __name__ == '__main__':

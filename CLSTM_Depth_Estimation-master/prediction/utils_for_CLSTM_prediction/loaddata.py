@@ -53,17 +53,20 @@ class depthDataset(Dataset):
         rgb_tensor = []
         depth_tensor = []
         depth_scaled_tensor = []
+        rgb_raw_tensor = []
         for rgb_clip, depth_clip in zip(rgb_clips, depth_clips):
             sample = {'image': rgb_clip, 'depth': depth_clip}
             sample_new = self.transform(sample)
             rgb_tensor.append(sample_new['image'])
             depth_tensor.append(sample_new['depth'])
             depth_scaled_tensor.append(sample_new['depth_scaled'])
+            rgb_raw_tensor.append(torch.from_numpy(np.array(sample['image'])))
 
         return torch.stack(rgb_tensor, 0).permute(1, 0, 2, 3), \
                torch.stack(depth_tensor, 0).permute(1, 0, 2, 3), \
                torch.stack(depth_scaled_tensor, 0).permute(1, 0, 2, 3), \
-               test_index, rgb_index[-1]
+               test_index, depth_index[-1],\
+               torch.stack(rgb_raw_tensor, 0)
 
     def __len__(self):
         return len(self.data_dict)
@@ -76,7 +79,7 @@ def getTestingData(batch_size=64, dict_dir=None, root_dir=None, num_workers=4):
     transformed_testing = depthDataset(dict_dir=dict_dir,
                                        root_dir=root_dir,
                                        transform=Compose([
-                                           ReScale(240),
+                                           ReScale((240,320)),
                                            # Crop([8, 8, 312, 236], [152, 114]),
                                            ToTensor(),
                                            Normalize(__imagenet_stats['mean'],
@@ -198,8 +201,8 @@ class ToTensor(object):
         """
         # ground truth depth of training samples is stored in 8-bit while test samples are saved in 16 bit
         image = self.to_tensor(image)
-        depth = self.to_tensor(depth).float() / 6000.0
-        depth_scaled = self.to_tensor(depth_scaled).float() / 6000.0
+        depth = self.to_tensor(depth).float() / 1000.0
+        depth_scaled = self.to_tensor(depth_scaled).float() / 1000.0
         return {'image': image, 'depth': depth, 'depth_scaled': depth_scaled}
 
     def to_tensor(self, pic):
